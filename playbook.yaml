@@ -1,0 +1,146 @@
+---
+- name: Initialize Workstation
+  hosts: localhost
+  tasks:
+  
+  # ==============================================================================================================================================
+  # Install and setup oh-my-zsh
+  # ==============================================================================================================================================
+
+  - name: Set ZSH as the default shell
+    shell: chsh -s $(which zsh) {{ lookup('env', 'USER') }}
+    become: true
+
+  # ==============================================================================================================================================
+  # Install and setup Homebrew packages/apps
+  # ==============================================================================================================================================
+  - name: Add Custom Homebrew Taps
+    community.general.homebrew_tap:
+      name: "{{ item }}"
+    with_items:
+      - adoptopenjdk/openjdk
+      - homebrew/cask-versions
+
+  - name: Install Homebrew Packages/Apps
+    community.general.homebrew:
+      name: "{{ item }}"
+    with_items:
+      - aws-vault
+      - awscli
+      - chezmoi
+      - coreutils
+      - drone-cli
+      - freetype
+      - grep
+      - jq
+      - txn2/tap/kubefwd
+      - kubernetes-cli
+      - libpq
+      - nvm
+      - openjdk@11
+      - parquet-cli
+      - python@3.9
+      - terraform-docs
+      - tfenv
+      - tflint
+      - virtualenv
+      - yq
+      - zsh
+
+  - name: Install Homebrew Packages/Apps with Casks
+    community.general.homebrew_cask:
+      name: "{{ item }}"
+    with_items:
+      - 1password
+      - dbeaver-community
+      - iterm2
+      - openlens
+      - pycharm-ce
+      - session-manager-plugin
+      - slack
+      - visual-studio-code
+      - zoom
+
+  # ==============================================================================================================================================
+  # Configure VS Code
+  # ==============================================================================================================================================
+
+  - name: Create a default VSCode configuration
+    template:
+      src: templates/vscode-settings.json.j2
+      dest: /Users/{{ lookup('env', 'USER') }}/Library/Application Support/Code/User/settings.json
+      owner: "{{ lookup('env', 'USER') }}"
+      force: yes
+
+  # ==============================================================================================================================================
+  # Install and setup projects and virtual environments
+  # ==============================================================================================================================================
+  - name: Create Projects Directory
+    ansible.builtin.file:
+      path: /Users/{{ lookup('env', 'USER') }}/Projects
+      state: directory
+  
+  - name: Clone Project Repos
+    ansible.builtin.git:
+      repo: "https://github.com/stuzo/{{ item }}.git"
+      dest: "/Users/{{ lookup('env', 'USER') }}/Projects/{{ item }}"
+    with_items: 
+      - oc-data-pipelines
+      - oc-databricks
+      - oc-databricks-altria
+      - oc-databricks-cefco
+      - oc-databricks-chevron
+      - oc-databricks-delek
+      - oc-databricks-gulf
+      - oc-databricks-marathon
+      - oc-databricks-yesway
+      - oc-stacks
+      - oc-terraform
+      - oc-tf-data-lake
+      - sprak
+      - stuzo-aws-python
+      - stuzo-dba-python
+      - stuzo-common-python    
+
+  - name: Setup Virtualenv For Project
+    ansible.builtin.command:
+      cmd: python3.9 -m venv .venv
+      chdir: "/Users/{{ lookup('env', 'USER') }}/Projects/{{ item }}"
+      creates: "/Users/{{ lookup('env', 'USER') }}/Projects/{{ item }}/.venv"
+    with_items: 
+      - oc-data-pipelines
+      - oc-databricks
+      - oc-databricks-altria
+      - oc-databricks-cefco
+      - oc-databricks-chevron
+      - oc-databricks-delek
+      - oc-databricks-gulf
+      - oc-databricks-marathon
+      - oc-databricks-yesway
+      - oc-stacks
+      - oc-terraform
+      - sprak
+      - stuzo-aws-python
+      - stuzo-dba-python
+      - stuzo-common-python    
+
+  - name: Install Project Virtualenv Requirements for oc-data-pipelines
+    ansible.builtin.pip:
+      requirements: /Users/{{ lookup('env', 'USER') }}/Projects/oc-data-pipelines/requirements.txt
+      virtualenv: /Users/{{ lookup('env', 'USER') }}/Projects/oc-data-pipelines/.venv
+    with_items: 
+      - oc-data-pipelines
+      - oc-databricks
+      - oc-databricks-altria
+      - oc-databricks-cefco
+      - oc-databricks-chevron
+      - oc-databricks-delek
+      - oc-databricks-gulf
+      - oc-databricks-marathon
+      - oc-databricks-yesway
+      - oc-stacks
+      - oc-terraform
+      - sprak
+      - stuzo-aws-python
+      - stuzo-dba-python
+      - stuzo-common-python    
