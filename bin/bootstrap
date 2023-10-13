@@ -20,6 +20,10 @@ sudo xcodebuild -license
 # Install Ansible
 python3 -m pip install --ignore-installed ansible
 
+# Setup PATH variables.
+export PATH=/opt/homebrew/bin:$PATH
+export PATH=~/Library/Python/3.9/bin:$PATH
+
 # Install the Required Modules for Ansible.
 ansible-galaxy install -r requirements.yaml
 
